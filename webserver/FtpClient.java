@@ -16,7 +16,7 @@ import java.util.regex.*;
 public class FtpClient {
 
     final static String CRLF = "\r\n";
-    private boolean DEBUG = true;		// Debug Flag
+    private boolean DEBUG = false;		// Debug Flag
     private Socket controlSocket = null;
     private BufferedReader controlReader = null;
     private DataOutputStream controlWriter = null;

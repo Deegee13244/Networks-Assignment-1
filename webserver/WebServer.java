@@ -103,11 +103,34 @@ final class HttpRequest implements Runnable
             statusLine = "HTTP/1.1 200 OK" + CRLF;
             contentTypeLine = "Content-type: " + contentType(fileName) + CRLF;
         } else {
-            statusLine = "HTTP/1.1 404 Not Found" + CRLF;
-            contentTypeLine = "Content-type: text/html" + CRLF;
-            entityBody = "<HTML>" + 
-                "<HEAD><TITLE>Not Found</TITLE></HEAD>" + 
-                "<BODY>Not Found</BODY></HTML>";
+            // If the file requested is any type other than a text (.txt) file, 
+            // report an error to the web client
+            if (!contentType(fileName).equalsIgnoreCase("text/plain")) {
+                statusLine = "HTTP/1.1 404 Not Found" + CRLF;
+                contentTypeLine = "Content-type: text/html" + CRLF;
+                entityBody = "<HTML>" + 
+                    "<HEAD><TITLE>Not Found</TITLE></HEAD>" + 
+                    "<BODY>Not Found</BODY></HTML>";
+            } else {
+                //else retrieve the text (.txt) file from local FTP server
+                statusLine = "HTTP/1.1 200 OK" + CRLF;
+                contentTypeLine = "Content-type: text/plain" + CRLF;
+
+                // Create an instance of the FTP client
+                FtpClient ftpClient = new FtpClient();
+
+                // Connect to the FTP server with credentials
+                ftpClient.connect("ftp", "ftp");
+
+                // Retrieve the file from the FTP server (make sure it's uploaded to your FTP server under your user's directory)
+                ftpClient.getFile(fileName);
+
+                // Disconnect from the FTP server
+                ftpClient.disconnect();
+
+                // assign input stream to read the recently ftp-downloaded file
+                fis = new FileInputStream(fileName);
+            }
         }
 
         System.out.println("\nResponse:");
@@ -129,8 +152,12 @@ final class HttpRequest implements Runnable
             sendBytes(fis, os);
             fis.close();
         } else {
-            os.writeBytes(entityBody);
-            System.out.println("Not Found");
+            if (!contentType(fileName).equalsIgnoreCase("text/plain")) {
+                os.writeBytes(entityBody);
+            }
+            else {
+                sendBytes(fis, os);
+            }
         }
 
         //Close streams and socket
