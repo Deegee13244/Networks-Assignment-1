@@ -8,7 +8,7 @@ import java.util.regex.*;
  * each function does before adding to it. You only need to add code 
  * wherever you see a '?'
  *
- * @author Giovani
+ * @author Brad
  * 
  */
 
@@ -16,7 +16,7 @@ import java.util.regex.*;
 public class FtpClient {
 
     final static String CRLF = "\r\n";
-    private boolean DEBUG = false;		// Debug Flag
+    private boolean DEBUG = true;		// Debug Flag
     private Socket controlSocket = null;
     private BufferedReader controlReader = null;
     private DataOutputStream controlWriter = null;
@@ -47,8 +47,8 @@ public class FtpClient {
                 System.out.println("Succesfully connected to FTP server");
             }
 
-            sendCommand("USER " + username, 331);
-            sendCommand("PASS " + password, 230);
+            sendCommand("USER " + username + CRLF, 331);
+            sendCommand("PASS " + password + CRLF, 230);
 
         } catch (UnknownHostException ex) {
             System.out.println("UnknownHostException: " + ex);
@@ -65,10 +65,10 @@ public class FtpClient {
 	int data_port = 0; // initialize the data port        
 	try {
             // change to current (root) directory first
-            sendCommand("CWD /", 250);
+            sendCommand("CDUP" + CRLF, 250);
 
             // set to passive mode and retrieve the data port number from response
-            currentResponse = sendCommand("PASV", 227);
+            currentResponse = sendCommand("PASV" + CRLF, 250);
             data_port = extractDataPort(currentResponse);
 
             // connect to the data port 
@@ -76,7 +76,7 @@ public class FtpClient {
             DataInputStream data_reader = new DataInputStream(data_socket.getInputStream());
 
             // download file from ftp server
-            sendCommand("RETR " + file_name, 150);
+            sendCommand("RETR " + file_name + CRLF, 150);
 
             // check if the transfer was succesful
             if (checkResponse(226)) {
